@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>角色狀態欄工坊 · HUD Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--pg:#f3efe9;--pn:#fffdfa;--ink:#2b2a33;--mut:#7a7684;--line:#e4ddd2;--acc:#6b5bd6;--acc2:#e08fb0;--sh:0 10px 40px rgba(60,40,90,.08);
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pg:#121118;--pn:#1b1a24;--ink:#ece9f5;--mut:#9b97ab;--line:#2d2b3a;--acc:#a898ff;--acc2:#f2a1c4;--sh:0 10px 40px rgba(0,0,0,.4);color-scheme:dark}}
+:root[data-theme="dark"]{--pg:#121118;--pn:#1b1a24;--ink:#ece9f5;--mut:#9b97ab;--line:#2d2b3a;--acc:#a898ff;--acc2:#f2a1c4;--sh:0 10px 40px rgba(0,0,0,.4);color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--pg);color:var(--ink);font:15px/1.6 "Noto Sans TC",system-ui,sans-serif;
+background-image:radial-gradient(60rem 30rem at 85% -10%,color-mix(in srgb,var(--acc) 18%,transparent),transparent),radial-gradient(40rem 24rem at -5% 10%,color-mix(in srgb,var(--acc2) 14%,transparent),transparent);background-attachment:fixed}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 18px 60px}
+header{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+.logo{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 8px 20px color-mix(in srgb,var(--acc) 40%,transparent)}
+h1{font:700 24px "Noto Serif TC",serif;margin:0;letter-spacing:.04em}
+header p{margin:0;color:var(--mut);font-size:13px}
+.steps{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:18px}
+.steps button{flex:1;min-width:92px;display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--line);background:var(--pn);color:var(--mut);border-radius:14px;font:inherit;font-size:13px;cursor:pointer;transition:.2s}
+.steps b{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;background:var(--line);color:var(--ink)}
+.steps .on{color:var(--ink);border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 18%,transparent)}
+.steps .on b,.steps .done b{background:var(--acc);color:#fff}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 460px;gap:22px;align-items:start}
+.panel{background:var(--pn);border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:var(--sh)}
+.panel h2{font:700 20px "Noto Serif TC",serif;margin:0 0 4px}
+.hint{color:var(--mut);margin:0 0 18px;font-size:13.5px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.opt{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:12px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:14px;font:inherit;cursor:pointer;text-align:left;transition:.2s}
+.opt svg{color:var(--acc);margin-bottom:4px}.opt small{color:var(--mut);font-size:11.5px;line-height:1.35}
+.opt:hover{transform:translateY(-2px);border-color:var(--acc)}.opt.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 10%,transparent)}
+label{display:block;font-size:12.5px;color:var(--mut);margin-bottom:12px}
+input[type=text],input[type=number],textarea{width:100%;margin-top:4px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--pg);color:var(--ink);font:inherit}
+input:focus,textarea:focus{outline:2px solid color-mix(in srgb,var(--acc) 50%,transparent);border-color:var(--acc)}
+.lbl{font-size:12.5px;color:var(--mut);margin:6px 0}
+select{width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--pg);color:var(--ink);font:inherit}
+.rp{position:absolute;width:12px;height:12px;margin:-6px;border:2px solid var(--acc);border-radius:50%;pointer-events:none;animation:rip .7s ease-out forwards}@keyframes rip{to{transform:scale(14);opacity:0}}
+.icons{display:flex;gap:8px;flex-wrap:wrap}
+.ic{width:46px;height:46px;border-radius:12px;border:1px solid var(--line);display:grid;place-items:center;background:transparent;color:var(--ink);cursor:pointer;font:inherit;font-size:11px;margin:0}
+.ic.on{border-color:var(--acc);color:var(--acc);background:color-mix(in srgb,var(--acc) 10%,transparent)}
+.themes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.th{border:2px solid transparent;border-radius:14px;padding:12px 10px 10px;cursor:pointer;text-align:left;font:inherit;transition:.2s}
+.th:hover{transform:translateY(-2px)}.th.on{border-color:var(--acc)}
+.th i{display:inline-block;width:14px;height:14px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.th b{display:block;margin-top:8px;font-size:13px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+input[type=color]{width:100%;height:38px;margin-top:4px;padding:2px;border:1px solid var(--line);border-radius:10px;background:var(--pg);cursor:pointer}
+.frow{display:grid;grid-template-columns:34px 1fr 1.2fr 28px;gap:8px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px}
+.frow input[type=text],.frow input[type=number]{margin:0;padding:6px 9px}
+.frow .ct{display:flex;align-items:center;gap:8px;min-width:0}.frow .ct input[type=range]{flex:1;min-width:0}.frow em{font-style:normal;font-size:11.5px;color:var(--mut);min-width:44px;text-align:right}
+.tag{font-size:11px;text-align:center;padding:3px 0;border-radius:8px;background:color-mix(in srgb,var(--acc) 14%,transparent);color:var(--acc);font-weight:700}
+.x{border:0;background:none;color:var(--mut);cursor:pointer;font-size:18px}.x:hover{color:#e5484d}
+input[type=range]{accent-color:var(--acc)}
+.adds{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
+.btn{padding:9px 16px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;font-size:13px;cursor:pointer;transition:.2s}
+.btn:hover{border-color:var(--acc);color:var(--acc)}
+.btn.pri{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:0;box-shadow:0 6px 16px color-mix(in srgb,var(--acc) 35%,transparent)}
+.btn.pri:hover{color:#fff;filter:brightness(1.06)}
+.nav{display:flex;justify-content:space-between;margin-top:22px;padding-top:18px;border-top:1px dashed var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.chips .btn.on{border-color:var(--acc);color:var(--acc);background:color-mix(in srgb,var(--acc) 10%,transparent)}
+.sw{display:flex;align-items:center;gap:10px;font-size:13px;margin:12px 0;color:var(--ink)}
+textarea{height:300px;font:12px/1.55 ui-monospace,Menlo,Consolas,monospace;resize:vertical}
+.pvbox{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px)}
+.stage{position:relative;border-radius:22px;padding:76px 14px 34px;border:1px solid var(--line);background-color:var(--pn);background-image:radial-gradient(color-mix(in srgb,var(--mut) 30%,transparent) 1px,transparent 1px);background-size:16px 16px;box-shadow:var(--sh);cursor:pointer;overflow:hidden}
+.stage>span{position:absolute;top:10px;left:16px;font-size:11px;letter-spacing:.12em;color:var(--mut)}
+.sbtn{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.sbtn .btn{padding:6px 14px;font-size:12.5px}.sbtn .btn.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.fx{position:absolute;pointer-events:none;font-size:18px;animation:pop .9s cubic-bezier(.1,.8,.3,1) forwards;z-index:9}
+@keyframes pop{to{transform:translate(var(--dx),var(--dy)) scale(1.4);opacity:0}}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);transform:translate(-50%,40px);background:var(--ink);color:var(--pg);padding:9px 18px;border-radius:99px;font-size:13px;opacity:0;transition:.3s;z-index:99}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media(max-width:960px){.main{grid-template-columns:1fr}.pvbox{position:static;order:-1}.grid3,.themes{grid-template-columns:repeat(2,1fr)}.frow{grid-template-columns:30px 1fr 24px}.frow .ct{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="logo"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9h6M7 13h10M7 16.5h4"/><circle cx="17" cy="9" r="1.2" fill="currentColor"/></svg></div>
+  <div><h1>角色狀態欄工坊</h1><p>五個步驟，為你的 AI 角色量身打造專屬狀態欄</p></div>
+</header>
+<nav class="steps" id="steps"></nav>
+<div class="main">
+  <section class="panel" id="panel"></section>
+  <aside class="pvbox">
+    <div class="stage" id="stage"><span>LIVE PREVIEW · 點擊卡片有彩蛋</span><div id="pv"></div></div>
+    <div class="sbtn" id="sbtn"></div>
+  </aside>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ICONS={
+ star:'<path d="M12 2l2.6 6.6L21 10l-5 4.4L17.5 21 12 17.6 6.5 21 8 14.4 3 10l6.4-1.4z"/>',
+ moon:'<path d="M20 14.5A8.5 8.5 0 019.5 4 8.5 8.5 0 1020 14.5z"/><path d="M16 4v3M14.5 5.5h3"/>',
+ blade:'<path d="M5 19L18 6M14 4h6v6M7 17l-3 3M10 14l-3-3"/>',
+ rose:'<path d="M12 3c3 2 5 4 5 7 0 3-2 5-5 5s-5-2-5-5c0-3 2-5 5-7zM12 15v6M12 18c-2 0-3-1-4-2"/>',
+ chip:'<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/>',
+ paw:'<circle cx="7" cy="10" r="2"/><circle cx="12" cy="7" r="2"/><circle cx="17" cy="10" r="2"/><path d="M12 12c-3 0-5 3-5 5 0 2 2 2 5 1 3 1 5 1 5-1 0-2-2-5-5-5z"/>'};
+const icon=(k,s=24)=>`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${ICONS[k]}</svg>`;
+const HEART='<path d="M12 21s-8-5.3-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.7-8 11-8 11z"/>';
+
+/* theme: bg, bg2, tx, sub, ac, ac2, bd, tr, frame */
+const THEMES={
+ morandi:{n:'莫蘭迪',bg:'#f4f1ec',bg2:'#e9e4dd',tx:'#3a4248',sub:'#7d8790',ac:'#7a9a95',ac2:'#c8a2a7',bd:'#c9c2ba',tr:'#ded8d0',fr:'soft'},
+ arcane:{n:'奧術星夜',bg:'#241b3d',bg2:'#16112a',tx:'#efe9ff',sub:'#a99bd0',ac:'#b79cff',ac2:'#ffd38a',bd:'#5a4a8f',tr:'#352b57',fr:'ornate'},
+ cyber:{n:'賽博霓虹',bg:'#0b1220',bg2:'#070b14',tx:'#dff8ff',sub:'#7fa6b5',ac:'#22e5ff',ac2:'#ff3d8b',bd:'#1f6f85',tr:'#13202f',fr:'cyber'},
+ sakura:{n:'和風櫻',bg:'#fbf4ee',bg2:'#f3e5dc',tx:'#2f3a4f',sub:'#7b7487',ac:'#c8495a',ac2:'#e59aa5',bd:'#d9b8a8',tr:'#ecd9cf',fr:'ornate'},
+ gothic:{n:'哥德暗夜',bg:'#1a1014',bg2:'#0f0709',tx:'#f1e6dc',sub:'#ad9a92',ac:'#c0394d',ac2:'#d9c3a0',bd:'#5c2a33',tr:'#2b161b',fr:'ornate'},
+ pixel:{n:'像素街機',bg:'#232a42',bg2:'#171c2f',tx:'#f2f5ff',sub:'#97a3cc',ac:'#7cf0a0',ac2:'#ffd166',bd:'#7cf0a0',tr:'#323b5e',fr:'pixel'},
+ ocean:{n:'深海螢光',bg:'#0e2a3b',bg2:'#071a26',tx:'#e4f6ff',sub:'#8fb8cc',ac:'#4fd1c5',ac2:'#7aa2ff',bd:'#1f5f7a',tr:'#16384b',fr:'neon'},
+ forest:{n:'森語',bg:'#e9f0e3',bg2:'#d6e2cc',tx:'#2c3a2a',sub:'#6f8368',ac:'#5f9b57',ac2:'#d9a441',bd:'#b7c9a8',tr:'#cfdcc3',fr:'double'},
+ candy:{n:'糖霜夢',bg:'#fff0f6',bg2:'#ffe0ee',tx:'#5a2a45',sub:'#a8758f',ac:'#ff6fa5',ac2:'#8e7dff',bd:'#ffb6d2',tr:'#ffd3e5',fr:'soft'},
+ sunset:{n:'夕燒',bg:'#2d1b3a',bg2:'#1a0f24',tx:'#fff0e6',sub:'#c9a8b8',ac:'#ff8a5b',ac2:'#ffd166',bd:'#7a3f55',tr:'#432744',fr:'double'},
+ gold:{n:'皇家金',bg:'#14110a',bg2:'#0a0805',tx:'#f6ecd2',sub:'#b9a77a',ac:'#e0b04a',ac2:'#f6e2a0',bd:'#6e5a22',tr:'#2b2410',fr:'ornate'},
+ ink:{n:'水墨',bg:'#f6f4ef',bg2:'#e9e6de',tx:'#1f1f1f',sub:'#7a7a7a',ac:'#222222',ac2:'#b23a3a',bd:'#bdb8ad',tr:'#dcd8cd',fr:'double'}};
+const CORNER={
+ ornate:'<svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 24V10C2 5 5 2 10 2h14"/><circle cx="7" cy="7" r="1.6" fill="currentColor"/></svg>',
+ cyber:'<svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M2 24V8l6-6h16"/></svg>'};
+
+const bar=(n,v)=>({t:'bar',n,v,max:100}),heart=(n,v)=>({t:'heart',n,v,max:5}),badge=(n,txt)=>({t:'badge',n,txt}),num=(n,v)=>({t:'num',n,v}),text=(n,txt)=>({t:'text',n,txt}),sec=n=>({t:'sec',n});
+const ARCH=[
+ {n:'奧術法師',d:'魔力、咒語與好感',th:'arcane',ic:'star',name:'愛莉絲',title:'魔導王國首席宮廷導師',f:[sec('生命魔力'),bar('生命',82),bar('魔力',64),sec('關係'),heart('好感',4),badge('狀態','研究咒文中')]},
+ {n:'賽博傭兵',d:'義體、信用點與威脅',th:'cyber',ic:'chip',name:'零',title:'夜城自由接單人',f:[sec('身體'),bar('生命',90),bar('義體負載',45),sec('情報'),num('信用點',1280),badge('威脅等級','B')]},
+ {n:'武士劍客',d:'氣勢、名譽與心境',th:'sakura',ic:'blade',name:'朧月',title:'流浪的無名劍士',f:[sec('修為'),bar('體力',76),bar('氣',58),sec('心境'),num('名譽',320),text('心境','靜如止水')]},
+ {n:'吸血鬼貴族',d:'血量、渴望與魅惑',th:'gothic',ic:'rose',name:'卡蜜拉',title:'血月城堡的女伯爵',f:[sec('血脈'),bar('血量',70),bar('渴血度',35),sec('社交'),heart('好感',3),badge('魅惑','全開')]},
+ {n:'戀愛對象',d:'好感、心動與日常',th:'morandi',ic:'moon',name:'小夜',title:'隔壁班的圖書委員',f:[sec('關係進度'),bar('好感度',55),heart('心動指數',3),num('親密度',12),badge('心情','有點害羞')]},
+ {n:'像素冒險者',d:'HP、經驗值與等級',th:'pixel',ic:'paw',name:'小勇者',title:'新手村出身的冒險者',f:[sec('STATUS'),bar('HP',88),bar('EXP',40),num('等級',7),text('裝備','木劍 + 布甲')]}];
+
+let uid=0;const mk=a=>a.map(f=>({...f,id:++uid}));
+const S={step:0,arch:0,name:'',title:'',av:{t:'icon',k:'star'},theme:'arcane',ov:{},bar:'smooth',g:{r:18,bw:1.5,glow:26,op:100,blur:0,bh:12,br:99,font:'sans',pat:'none',w:420,av:'circle',b1:'',b2:'',lw1:'#e5484d',lw2:'#ff8a5b',low:1,fx:{shine:1}},acc:[],sel:0,states:[{n:'正常',lb:'狀態：正常',ef:'none',c:'',fid:'',op:'<=',v:0},{n:'危急',lb:'⚠ 危急',ef:'pulse',c:'#e5484d',fid:'',op:'<=',v:30},{n:'心動',lb:'♥ 心動',ef:'glow',c:'#ff7aa8',fid:'',op:'>=',v:5},{n:'狂暴',lb:'🔥 狂暴',ef:'shake',c:'#ff8a2b',fid:'',op:'>=',v:90}],cur:-1,play:0,click:'burst',bump:0,px:{on:0,pal:'theme',n:48,dith:0,src:''},tilt:1,burst:'✨💖🌸⭐🌿',state:'normal',auto:true,thr:30,
+ lab:{normal:'狀態：正常',danger:'⚠ 危急',love:'♥ 心動',rage:'🔥 狂暴'},f:[],ex:'html'};
+function pickArch(i){const a=ARCH[i];S.arch=i;S.name=a.name;S.title=a.title;S.theme=a.th;S.ov={};S.av={t:'icon',k:a.ic};S.f=mk(a.f);autoRules();S.cur=-1;}
+pickArch(0);
+
+/* ---------- libraries & helpers ---------- */
+const FONTS={sans:"14px/1.5 'Noto Sans TC',system-ui,sans-serif",serif:"14px/1.55 'Noto Serif TC',serif",mono:"13px/1.5 ui-monospace,Menlo,Consolas,monospace"};
+const ACC={crown:'<path d="M3 18h18v2H3zM3 8l4.5 4L12 5l4.5 7L21 8v9H3z"/>',halo:'<ellipse cx="12" cy="12" rx="9" ry="3.5" fill="none" stroke="currentColor" stroke-width="2.4"/>',horns:'<path d="M4 4c0 6 2 9 6 11C8 11 7 8 4 4zM20 4c0 6-2 9-6 11 2-4 3-7 6-11z"/>',ears:'<path d="M3 20V4l6 5h6l6-5v16z"/>',wings:'<path d="M12 12C9 6 4 5 1 6c1 5 4 8 8 9-3 1-5 3-6 5 5 0 9-2 9-8zM12 12c3-6 8-7 11-6-1 5-4 8-8 9 3 1 5 3 6 5-5 0-9-2-9-8z"/>',heart:HEART,sparkle:'<path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/>',flame:'<path d="M12 22c5 0 8-3.4 8-7.5 0-4-3-6.5-5-10-1 3-2.5 4-4 3.5C12 6 10 4 10 2 6 5 4 9 4 14.5 4 18.6 7 22 12 22z"/>',sword:'<path d="M20.5 2.5l1 4-9.5 9.5-2.5-2.5zM8 14l2 2-3.5 3.5L3 21l1.5-3.5z"/>',star:'<path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.6 5.8 21.2l1.6-7L2 9.5l7.1-.6z"/>',moon:'<path d="M20 14.5A8.5 8.5 0 019.5 4 8.5 8.5 0 1020 14.5z"/>',bow:'<path d="M12 12L3 6v12zM12 12l9-6v12z"/><circle cx="12" cy="12" r="2.5"/>'};
+const ACCN={crown:'皇冠',halo:'光環',horns:'惡魔角',ears:'貓耳',wings:'翅膀',heart:'愛心',sparkle:'星芒',flame:'火焰',sword:'長劍',star:'星星',moon:'月亮',bow:'蝴蝶結'};
+const PAL={gb:[[15,56,15],[48,98,48],[139,172,15],[155,188,15]],mono:[[0,0,0],[255,255,255]],morandi:[[242,244,247],[122,154,149],[200,162,167],[140,163,184],[213,197,181],[51,65,85]],pico:[[0,0,0],[29,43,83],[126,37,83],[0,135,81],[171,82,54],[95,87,79],[194,195,199],[255,241,232],[255,0,77],[255,163,0],[255,236,39],[0,228,54],[41,173,255],[131,118,156],[255,119,168],[255,204,170]],nes:[[124,124,124],[0,0,252],[188,188,188],[248,56,0],[0,168,0],[248,184,0],[88,216,84],[104,136,252],[0,0,0],[252,252,252]]};
+const h2r=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16));
+function pxRun(){const p=S.px;if(!p.on||S.av.t==='url'){p.src='';pv();return}
+ const src=S.av.t==='icon'?'data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 28 28" width="256" height="256" fill="none" stroke="${th().ac}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[S.av.k]}</svg>`):S.av.src;
+ const im=new Image();im.onload=()=>{const n=p.n,c=document.createElement('canvas');c.width=c.height=n;const x=c.getContext('2d');x.fillStyle=th().bg2;x.fillRect(0,0,n,n);const m=Math.min(im.width,im.height);x.drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,n,n);
+  const d=x.getImageData(0,0,n,n),a=d.data,pal=p.pal==='theme'?['bg','bg2','tx','ac','ac2'].map(k=>h2r(th()[k])):PAL[p.pal];
+  if(pal)for(let i=0;i<a.length;i+=4){const o=p.dith?((((i/4)%n)&1)^((((i/4)/n)|0)&1)?18:-18):0;let r=a[i]+o,g=a[i+1]+o,b=a[i+2]+o,best=pal[0],bd=1e9;for(const q of pal){const dd=(r-q[0])**2+(g-q[1])**2+(b-q[2])**2;if(dd<bd){bd=dd;best=q}}a[i]=best[0];a[i+1]=best[1];a[i+2]=best[2]}
+  x.putImageData(d,0,0);p.src=c.toDataURL();pv()};im.onerror=()=>{p.src='';pv()};im.src=src}
+function addAcc(k,img){S.acc.push({k,img:img||'',x:0,y:-8,s:1,r:0,c:th().ac2,an:'float'});S.sel=S.acc.length-1;panel();pv()}
+function accUp(el){const r=new FileReader();r.onload=e=>addAcc('star',e.target.result);if(el.files[0])r.readAsDataURL(el.files[0])}
+const sl=(l,k,mn,mx,st,u)=>`<label>${l}：<b>${S.g[k]}${u}</b><input type="range" min="${mn}" max="${mx}" step="${st}" value="${S.g[k]}" style="width:100%" oninput="S.g['${k}']=+this.value;this.previousElementSibling.textContent=this.value+'${u}';pv()"></label>`;
+const sa=(l,k,mn,mx,st,u)=>{const v=S.acc[S.sel][k];return`<label>${l}：<b>${v}${u}</b><input type="range" min="${mn}" max="${mx}" step="${st}" value="${v}" style="width:100%" oninput="S.acc[S.sel]['${k}']=+this.value;this.previousElementSibling.textContent=this.value+'${u}';pv()"></label>`};
+const cp=(l,k)=>`<label>${l}<input type="color" value="${th()[k]}" oninput="S.ov['${k}']=this.value;pv()"></label>`;
+const cps=(arr,cur,js)=>arr.map(([k,l])=>`<button class="btn ${cur===k?'on':''}" onclick="${js.replace('@',k)};panel();pv()">${l}</button>`).join('');
+
+/* ---------- card (shared by preview + export) ---------- */
+const CARD_CSS=`.hud{position:relative;box-sizing:border-box;width:100%;max-width:420px;margin:8px auto;padding:18px;color:var(--tx);background:linear-gradient(160deg,color-mix(in srgb,var(--bg) var(--op,100%),transparent),color-mix(in srgb,var(--bg2) var(--op,100%),transparent));backdrop-filter:blur(var(--bl,0px));border:var(--bw,1.5px) solid var(--bd);border-radius:var(--r,18px);box-shadow:0 0 var(--gl,26px) color-mix(in srgb,var(--ac) 28%,transparent),0 12px 30px rgba(0,0,0,.18);font:var(--ft,14px/1.5 'Noto Sans TC',system-ui,sans-serif);overflow:hidden}
+.hud *{box-sizing:border-box}
+.hud .cn{position:absolute;width:26px;height:26px;color:var(--ac);pointer-events:none}
+.hud .cn.a{top:6px;left:6px}.hud .cn.b{top:6px;right:6px;transform:scaleX(-1)}.hud .cn.c{bottom:6px;left:6px;transform:scaleY(-1)}.hud .cn.d{bottom:6px;right:6px;transform:scale(-1)}
+.f-pixel{border-radius:0;box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--bd),6px 6px 0 5px rgba(0,0,0,.25)}
+.f-cyber{border-radius:0;clip-path:polygon(0 16px,16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%)}
+.hud .hd{display:flex;gap:14px;align-items:center;margin-bottom:12px}
+.hud .av{flex:none;width:62px;height:62px;border-radius:50%;display:grid;place-items:center;color:var(--ac);background:radial-gradient(circle at 30% 25%,color-mix(in srgb,var(--ac) 28%,var(--bg)),var(--bg2));border:2px solid var(--ac);overflow:hidden}
+.f-pixel .av,.f-cyber .av{border-radius:0}
+.hud .av img{width:100%;height:100%;object-fit:cover}
+.hud .nm{font:700 19px "Noto Serif TC",serif;line-height:1.25}
+.hud .tt{font-size:12px;color:var(--sub);margin-top:2px}
+.hud .bg{margin-left:auto;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;color:var(--bg);background:var(--ac);white-space:nowrap}
+.hud .sec{display:flex;align-items:center;gap:8px;margin:14px 0 6px;font-size:11px;letter-spacing:.14em;color:var(--ac);font-weight:700}
+.hud .sec:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--bd),transparent)}
+.hud .row{margin:9px 0}
+.hud .lb{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px}
+.hud .lb b{font-variant-numeric:tabular-nums;color:var(--sub);font-weight:500;font-size:12px}
+.hud .bar{height:var(--bh,12px);margin-top:5px;border-radius:var(--br,99px);background:var(--tr);overflow:hidden}
+.hud .bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--b1,var(--ac)),var(--b2,var(--ac2)));transition:width .3s}
+.f-pixel .bar,.f-pixel .bar i,.f-cyber .bar,.f-cyber .bar i{border-radius:0}
+.k-seg .bar{background:repeating-linear-gradient(90deg,var(--tr) 0 9px,transparent 9px 11px);border-radius:3px}
+.k-seg .bar i{border-radius:0;-webkit-mask:repeating-linear-gradient(90deg,#000 0 9px,transparent 9px 11px);mask:repeating-linear-gradient(90deg,#000 0 9px,transparent 9px 11px)}
+.k-wave .bar i{background:repeating-linear-gradient(115deg,var(--b1,var(--ac)) 0 10px,var(--b2,var(--ac2)) 10px 20px);background-size:28px 100%;animation:hmv 1s linear infinite}
+@keyframes hmv{to{background-position:28px 0}}
+.k-glow .bar{overflow:visible}.k-glow .bar i{box-shadow:0 0 10px var(--b1,var(--ac)),0 0 20px var(--b2,var(--ac2))}
+.hud .low i{background:linear-gradient(90deg,var(--lw1,#e5484d),var(--lw2,#ff8a5b))!important}
+.hud .hs{display:flex;gap:3px}.hud .hs svg{width:17px;height:17px;fill:none;stroke:var(--ac2);stroke-width:1.6}.hud .hs .on{fill:var(--ac2)}
+.hud .chip{font-size:12px;padding:2px 10px;border-radius:99px;border:1px solid var(--ac);color:var(--ac);background:color-mix(in srgb,var(--ac) 12%,transparent)}
+.hud .nu{font:700 18px "Noto Serif TC",serif;color:var(--ac2)}
+.hud .tx{color:var(--sub);font-style:italic;font-size:13px}
+.st-danger{border-color:#e5484d;animation:hdg 1.2s ease-in-out infinite}
+@keyframes hdg{50%{box-shadow:inset 0 0 28px rgba(229,72,77,.55),0 0 30px rgba(229,72,77,.6)}}
+.st-danger .bg{background:#e5484d;color:#fff}
+.st-love{border-color:#ff7aa8;box-shadow:0 0 30px rgba(255,122,168,.55)}
+.st-love .bg{background:#ff7aa8;color:#fff}.st-love .av{animation:hbt 1s ease-in-out infinite}
+@keyframes hbt{50%{transform:scale(1.08)}}
+.st-rage{border-color:#ff8a2b;box-shadow:0 0 30px rgba(255,138,43,.7);animation:hrg .35s linear infinite}
+@keyframes hrg{25%{transform:translate(-2px,1px)}75%{transform:translate(2px,-1px)}}
+.st-rage .bg{background:#ff8a2b;color:#fff}
+.hw{position:relative;max-width:420px;margin:8px auto;transition:transform .15s}.hw .hud{margin:0}
+.f-double{box-shadow:inset 0 0 0 4px var(--bg),inset 0 0 0 5.5px var(--bd),0 10px 26px rgba(0,0,0,.2)}
+.f-neon{border-color:var(--ac);box-shadow:0 0 6px var(--ac),0 0 22px var(--ac),inset 0 0 14px color-mix(in srgb,var(--ac) 35%,transparent)}
+.p-dots{background-image:radial-gradient(color-mix(in srgb,var(--ac) 22%,transparent) 1.2px,transparent 1.4px),linear-gradient(160deg,var(--bg),var(--bg2));background-size:14px 14px,auto}
+.p-grid{background-image:linear-gradient(color-mix(in srgb,var(--ac) 14%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--ac) 14%,transparent) 1px,transparent 1px),linear-gradient(160deg,var(--bg),var(--bg2));background-size:20px 20px,20px 20px,auto}
+.p-stripe{background-image:repeating-linear-gradient(45deg,color-mix(in srgb,var(--ac) 10%,transparent) 0 8px,transparent 8px 16px),linear-gradient(160deg,var(--bg),var(--bg2))}
+.p-stars{background-image:radial-gradient(1.5px 1.5px at 20% 30%,var(--ac2),transparent),radial-gradient(1px 1px at 70% 20%,var(--ac),transparent),radial-gradient(1.5px 1.5px at 85% 70%,var(--ac2),transparent),radial-gradient(1px 1px at 35% 80%,var(--ac),transparent),linear-gradient(160deg,var(--bg),var(--bg2))}
+.e-shine .hud:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 40%,rgba(255,255,255,.28) 50%,transparent 60%);transform:translateX(-100%);animation:hsh 3.5s infinite;pointer-events:none;z-index:2}
+@keyframes hsh{60%,100%{transform:translateX(100%)}}
+.e-scan .hud:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.13) 0 1px,transparent 1px 3px);pointer-events:none;z-index:2}
+.e-float{animation:hfl 4s ease-in-out infinite}@keyframes hfl{50%{transform:translateY(-6px)}}
+.e-ring .av{animation:hrp 2s ease-in-out infinite}@keyframes hrp{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--ac) 25%,transparent),0 0 18px var(--ac)}}
+.hw .ac{position:absolute;left:50%;top:0;width:56px;height:56px;margin:-28px 0 0 -28px;transform:translate(var(--x),var(--y)) scale(var(--s)) rotate(var(--r));pointer-events:none;z-index:5;color:var(--c)}
+.ac svg{width:100%;height:100%;overflow:visible}
+.an-float svg{animation:aflo 2.6s ease-in-out infinite}@keyframes aflo{50%{transform:translateY(-8px)}}
+.an-spin svg{animation:aspi 6s linear infinite}@keyframes aspi{to{transform:rotate(360deg)}}
+.an-pulse svg{animation:apul 1.2s ease-in-out infinite}@keyframes apul{50%{transform:scale(1.18)}}
+.an-twinkle svg{animation:atw 1.6s ease-in-out infinite}@keyframes atw{50%{opacity:.25;transform:scale(.85)}}
+.an-swing svg{animation:asw 2s ease-in-out infinite;transform-origin:50% 90%}@keyframes asw{50%{transform:rotate(14deg)}}
+.hud .bg{background:var(--sc,var(--ac))}
+.st-pulse{border-color:var(--sc);animation:hdg2 1.2s ease-in-out infinite}@keyframes hdg2{50%{box-shadow:inset 0 0 28px color-mix(in srgb,var(--sc) 55%,transparent),0 0 30px var(--sc)}}
+.st-glow{border-color:var(--sc);box-shadow:0 0 30px var(--sc)}
+.st-shake{border-color:var(--sc);box-shadow:0 0 30px var(--sc);animation:hrg .35s linear infinite}
+.st-breathe{border-color:var(--sc);animation:hbr 3s ease-in-out infinite}@keyframes hbr{50%{box-shadow:0 0 36px var(--sc);transform:scale(1.012)}}
+.st-flicker{border-color:var(--sc);animation:hfk 1.1s steps(1) infinite}@keyframes hfk{0%,100%{opacity:1}10%{opacity:.7;transform:translateX(-3px) skewX(2deg)}12%{opacity:1;transform:none}60%{opacity:.8;transform:translateX(3px)}62%{opacity:1;transform:none}}
+.st-rainbow{animation:hrb 3s linear infinite}@keyframes hrb{0%,100%{border-color:#ff5f6d}25%{border-color:#ffd166}50%{border-color:#4fd1c5}75%{border-color:#8e7dff}}
+.st-frost{border-color:var(--sc);box-shadow:inset 0 0 36px color-mix(in srgb,var(--sc) 45%,transparent),0 0 24px var(--sc)}
+.st-beat{border-color:var(--sc)}.st-beat .av{animation:hbt .9s ease-in-out infinite}
+.hud s{position:absolute;inset:0;pointer-events:none;display:none;z-index:1;text-decoration:none}
+.e-aurora .o1{display:block;background:linear-gradient(120deg,transparent,color-mix(in srgb,var(--ac) 30%,transparent),color-mix(in srgb,var(--ac2) 30%,transparent),transparent);background-size:300% 100%;animation:hau 6s linear infinite;opacity:.8}@keyframes hau{to{background-position:-300% 0}}
+.e-glitter .o2{display:block;background:radial-gradient(1.5px 1.5px at 15% 25%,#fff,transparent),radial-gradient(1.5px 1.5px at 60% 15%,#fff,transparent),radial-gradient(2px 2px at 85% 55%,#fff,transparent),radial-gradient(1.5px 1.5px at 30% 75%,#fff,transparent),radial-gradient(1.5px 1.5px at 75% 88%,#fff,transparent);animation:hgl 2.4s ease-in-out infinite}@keyframes hgl{50%{opacity:.15}}
+.e-spot .o3{display:block;background:radial-gradient(200px circle at var(--mx,50%) var(--my,30%),rgba(255,255,255,.22),transparent 70%)}
+.a-sq .av{border-radius:16px}.a-hex .av{border-radius:0;clip-path:polygon(25% 4%,75% 4%,100% 50%,75% 96%,25% 96%,0 50%)}.a-dia .av{border-radius:0;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.k-gloss .bar i{box-shadow:inset 0 3px 0 rgba(255,255,255,.38),inset 0 -3px 0 rgba(0,0,0,.14)}
+.k-tick .bar{background:linear-gradient(90deg,transparent calc(100% - 1px),var(--bd) 0) 0 0/10% 100%,var(--tr)}
+.k-thin .bar{height:5px}
+@media (prefers-reduced-motion:reduce){.hud,.hud *,.hw,.hw *{animation:none!important}}`;
+const st=document.createElement('style');st.textContent=CARD_CSS;document.head.appendChild(st);
+
+const th=()=>({...THEMES[S.theme],...S.ov});
+const pct=f=>Math.max(0,Math.min(100,Math.round(f.v/f.max*100)));
+function eff(){const b=S.f.find(f=>f.t==='bar');return(S.auto&&b&&pct(b)<=S.thr)?'danger':S.state}
+function cardHTML(){
+ const t=th(),e=eff(),g=S.g,st=S.states[e];
+ const vars=`--bg:${t.bg};--bg2:${t.bg2};--tx:${t.tx};--sub:${t.sub};--ac:${t.ac};--ac2:${t.ac2};--bd:${t.bd};--tr:${t.tr};--r:${g.r}px;--bw:${g.bw}px;--gl:${g.glow}px;--op:${g.op}%;--bl:${g.blur}px;--bh:${g.bh}px;--br:${g.br}px;--ft:${FONTS[g.font]};--sc:${st.c||t.ac};--b1:${g.b1||t.ac};--b2:${g.b2||t.ac2};--lw1:${g.lw1};--lw2:${g.lw2}`;
+ const cn=CORNER[t.fr]?['a','b','c','d'].map(c=>`<div class="cn ${c}">${CORNER[t.fr]}</div>`).join(''):'';
+ const pxo=S.px.on&&S.px.src,asrc=pxo?S.px.src:(S.av.t==='icon'?'':S.av.src);const av=asrc?`<img src="${esc(asrc)}" alt="" ${pxo?'style="image-rendering:pixelated"':''}>`:icon(S.av.k||'star',30);
+ const rows=S.f.map(f=>{
+  const n=esc(f.n);
+  if(f.t==='sec')return`<div class="sec">${n}</div>`;
+  if(f.t==='bar'){const p=pct(f);return`<div class="row" data-f="${f.id}"><div class="lb"><span>${n}</span><b>${f.v}/${f.max}</b></div><div class="bar ${S.g.low!==0&&p<=S.thr?'low':''}" ${f.c1||f.c2?`style="--b1:${f.c1||S.g.b1||t.ac};--b2:${f.c2||S.g.b2||t.ac2}"`:''}><i style="width:${p}%"></i></div></div>`}
+  let r='';
+  if(f.t==='heart')r=`<div class="hs">${Array.from({length:f.max},(_,i)=>`<svg viewBox="0 0 24 24" class="${i<f.v?'on':''}">${HEART}</svg>`).join('')}</div>`;
+  if(f.t==='badge')r=`<span class="chip">${esc(f.txt)}</span>`;
+  if(f.t==='num')r=`<span class="nu">${f.v}</span>`;
+  if(f.t==='text')r=`<span class="tx">${esc(f.txt)}</span>`;
+  return`<div class="row"><div class="lb"><span>${n}</span>${r}</div></div>`}).join('');
+ const fx=Object.keys(g.fx).filter(k=>g.fx[k]).map(k=>'e-'+k).join(' '),acc=S.acc.map(a=>`<div class="ac an-${a.an}" style="--x:${a.x}px;--y:${a.y}px;--s:${a.s};--r:${a.r}deg;--c:${a.c}">${a.img?`<img src="${a.img}" alt="" style="width:100%;height:100%;object-fit:contain">`:`<svg viewBox="0 0 24 24" fill="currentColor">${ACC[a.k]}</svg>`}</div>`).join('');
+ return`<div class="hw ${fx} a-${g.av}" style="max-width:${g.w}px"><div class="hud f-${t.fr} k-${S.bar} st-${st.ef} p-${g.pat}" style="${vars}">${cn}<s class="o1"></s><s class="o2"></s><s class="o3"></s><div class="hd"><div class="av">${av}</div><div><div class="nm">${esc(S.name)}</div><div class="tt">${esc(S.title)}</div></div><span class="bg">${esc(st.lb)}</span></div>${rows}</div>${acc}</div>`;
+}
+function pv(){
+ $('#pv').innerHTML=cardHTML();
+ $('#sbtn').innerHTML=Object.keys(S.lab).map(k=>`<button class="btn ${eff()===k?'on':''}" onclick="setState('${k}')">${esc(S.lab[k].replace(/^[^\u4e00-\u9fa5A-Za-z]+/,''))}</button>`).join('');
+}
+function setState(k){S.state=k;S.auto=false;pv();if(ORD[S.step]===3)panel()}
+
+/* ---------- wizard panels ---------- */
+const STEPS=['角色','頭像','風格','細節','欄位','動態','飾品','導出'],ORD=[0,5,1,7,2,3,6,4];
+function stepsBar(){$('#steps').innerHTML=STEPS.map((s,i)=>`<button class="${i===S.step?'on':i<S.step?'done':''}" onclick="go(${i})"><b>${i<S.step?'✓':i+1}</b>${s}</button>`).join('')}
+function go(i){S.step=Math.max(0,Math.min(7,i));panel();window.scrollTo({top:0,behavior:'smooth'})}
+const nav=()=>`<div class="nav"><button class="btn" onclick="go(${S.step-1})" ${S.step?'':'style="visibility:hidden"'}>← 上一步</button>${S.step<7?`<button class="btn pri" onclick="go(${S.step+1})">下一步 →</button>`:'<span></span>'}</div>`;
+function panel(){
+ stepsBar();let h='';const P=ORD[S.step];
+ if(P===0){
+  h=`<h2>① 誰是這位角色？</h2><p class="hint">先挑一個原型，風格與欄位會自動配好，之後每一項都能再改。</p>
+  <div class="grid3">${ARCH.map((a,i)=>`<button class="opt ${S.arch===i?'on':''}" onclick="pickArch(${i});panel();pxRun()">${icon(a.ic,26)}<b>${a.n}</b><small>${a.d}</small></button>`).join('')}</div>
+  <label>角色名稱（對應 {{char}}）<input type="text" value="${esc(S.name)}" oninput="S.name=this.value;pv()"></label>
+  <label>稱號／身份<input type="text" value="${esc(S.title)}" oninput="S.title=this.value;pv()"></label>
+  <div class="lbl">頭像</div><div class="icons">${Object.keys(ICONS).map(k=>`<button class="ic ${S.av.t==='icon'&&S.av.k===k?'on':''}" onclick="S.av={t:'icon',k:'${k}'};panel();pxRun()">${icon(k)}</button>`).join('')}<label class="ic ${S.av.t==='img'?'on':''}">上傳<input type="file" accept="image/*" hidden onchange="upload(this)"></label></div>`;
+ }
+ if(P===1){
+  h=`<h2>③ 選擇整體風格</h2><p class="hint">每套風格都包含配色與專屬邊框（圓角、霓虹切角、花紋角飾、像素框）。</p>
+  <div class="themes">${Object.entries(THEMES).map(([k,t])=>`<button class="th ${S.theme===k?'on':''}" style="background:linear-gradient(135deg,${t.bg},${t.bg2});color:${t.tx}" onclick="S.theme='${k}';S.ov={};panel();pxRun()"><i style="background:${t.ac}"></i><i style="background:${t.ac2}"></i><b>${t.n}</b></button>`).join('')}</div>
+  <div class="two"><label>主色<input type="color" value="${th().ac}" oninput="S.ov.ac=this.value;pv()"></label><label>輔色<input type="color" value="${th().ac2}" oninput="S.ov.ac2=this.value;pv()"></label></div>
+  <button class="btn" onclick="S.ov={};panel();pv()">還原此風格預設色</button>`;
+ }
+ if(P===2){
+  const TG={bar:'條',heart:'心',badge:'標',num:'數',text:'字',sec:'區'};
+  h=`<h2>⑤ 設定狀態欄位</h2><p class="hint">調整名稱與數值；想要更多欄位就按下方按鈕新增。</p>`+S.f.map((f,i)=>`<div class="frow"><span class="tag">${TG[f.t]}</span><input type="text" value="${esc(f.n)}" oninput="F(${i},'n',this.value)">${f.t==='sec'?'<span></span>':`<div class="ct">${ctrl(f,i)}</div>`}<button class="x" onclick="rm(${i})" title="刪除">×</button></div>`).join('')+
+  `<div class="adds">${[['bar','＋ 進度條'],['heart','＋ 愛心'],['badge','＋ 標籤'],['num','＋ 數字'],['text','＋ 文字'],['sec','＋ 分區標題']].map(([t,l])=>`<button class="btn" onclick="add('${t}')">${l}</button>`).join('')}</div>`;
+ }
+ if(P===3){
+  h=`<h2>⑥ 進度條與動態狀態</h2><p class="hint">選擇進度條質感，再決定角色在不同情緒下的視覺效果。</p>
+  <div class="lbl">進度條樣式</div><div class="chips">${[['smooth','平滑漸層'],['seg','像素分格'],['wave','流動條紋'],['glow','霓虹發光'],['gloss','立體高光'],['tick','刻度'],['thin','細線']].map(([k,l])=>`<button class="btn ${S.bar===k?'on':''}" onclick="S.bar='${k}';panel();pv()">${l}</button>`).join('')}</div>
+  <div class="lbl">狀態徽章文字（也可用右側按鈕即時預覽）</div><div class="two">${Object.keys(S.lab).map(k=>`<label>${{normal:'正常',danger:'危急（紅色脈衝）',love:'心動（粉色光暈）',rage:'狂暴（震動火光）'}[k]}<input type="text" value="${esc(S.lab[k])}" oninput="S.lab['${k}']=this.value;pv()"></label>`).join('')}</div>
+  <div class="sw"><input type="checkbox" id="au" ${S.auto?'checked':''} onchange="S.auto=this.checked;pv()"><label for="au" style="margin:0;color:var(--ink)">第一條進度條過低時，自動進入「危急」狀態</label></div>
+  <label>觸發門檻：≤ <b id="thv">${S.thr}</b>%<input type="range" min="5" max="60" value="${S.thr}" style="width:100%" oninput="S.thr=+this.value;$('#thv').textContent=this.value;pv()"></label>`+`<div class="lbl" style="margin-top:14px">互動設定（僅預覽，不影響導出）</div><div class="sw"><input type="checkbox" id="tl" ${S.tilt?'checked':''} onchange="S.tilt=this.checked?1:0;tiltReset()"><label for="tl" style="margin:0;color:var(--ink)">滑鼠移動時 3D 傾斜卡片</label></div><label>點擊卡片的彩蛋表情（可自行輸入）<input type="text" value="${S.burst}" oninput="S.burst=this.value||'✨'"></label>`;
+ }
+ if(P===4){
+  h=`<h2>⑧ 完成！複製帶走</h2><p class="hint">HTML 可直接貼進支援 HTML 的角色平台；提示詞則讓 AI 每次回覆自動更新狀態。</p>
+  <div class="chips">${[['html','HTML 代碼'],['prompt','AI 提示詞'],['json','JSON 備份']].map(([k,l])=>`<button class="btn ${S.ex===k?'on':''}" onclick="S.ex='${k}';panel()">${l}</button>`).join('')}</div>
+  <textarea id="out" readonly>${esc(exportText())}</textarea>
+  <div style="margin-top:12px;display:flex;gap:10px"><button class="btn pri" onclick="copyOut()">複製到剪貼簿</button></div>
+  ${S.av.t==='img'?'<p class="hint" style="margin-top:12px">提醒：上傳的頭像會以內嵌資料輸出，檔案較大；若平台限制長度，建議改用圖片網址。</p>':''}`;
+ }
+ if(P===5)h=`<h2>② 頭像與像素化</h2><p class="hint">可用網址、上傳或內建圖示，再決定是否轉成復古像素風。</p>
+ <label>頭像圖片網址<input type="text" placeholder="https://…" value="${S.av.t==='url'?esc(S.av.src):''}" oninput="S.av={t:'url',src:this.value.trim()};pxRun()"></label>
+ <p class="hint">網址圖片會寫進導出代碼；但此頁面因瀏覽器安全限制，預覽無法載入外部圖片，也無法對它做像素轉換（請改用上傳）。</p>
+ <div class="sw"><input type="checkbox" id="pxe" ${S.px.on?'checked':''} onchange="S.px.on=this.checked?1:0;pxRun()"><label for="pxe" style="margin:0;color:var(--ink)">啟用像素轉換（內建圖示／上傳圖片）</label></div>
+ <div class="lbl">調色盤</div><div class="chips">${cps([['theme','跟隨主題'],['gb','Game Boy'],['morandi','莫蘭迪'],['pico','PICO-8'],['nes','NES'],['mono','黑白'],['none','原色']],S.px.pal,"S.px.pal='@';pxRun()")}</div>
+ <label>點陣解析度：<b>${S.px.n} px</b><input type="range" min="16" max="96" step="4" value="${S.px.n}" style="width:100%" oninput="S.px.n=+this.value;this.previousElementSibling.textContent=this.value+' px';pxRun()"></label>
+ <div class="sw"><input type="checkbox" id="pxd" ${S.px.dith?'checked':''} onchange="S.px.dith=this.checked?1:0;pxRun()"><label for="pxd" style="margin:0;color:var(--ink)">Dithering 抖動網點</label></div>`;
+if(P===7)h=`<h2>④ 細節微調</h2><p class="hint">邊框、紋理、字體、特效與每一個尺寸，都由你決定。</p>
+ <div class="lbl">邊框樣式</div><div class="chips">${cps([['soft','圓潤'],['ornate','花紋角飾'],['cyber','霓虹切角'],['pixel','像素框'],['double','雙線'],['neon','霓虹光']],th().fr,"S.ov.fr='@'")}</div>
+ <div class="lbl">頭像形狀</div><div class="chips">${cps([['circle','圓形'],['sq','圓角方形'],['hex','六角形'],['dia','菱形']],S.g.av,"S.g.av='@'")}</div><div class="lbl">背景紋理</div><div class="chips">${cps([['none','純色'],['dots','點點'],['grid','方格'],['stripe','斜紋'],['stars','星點']],S.g.pat,"S.g.pat='@'")}</div>
+ <div class="lbl">字體</div><div class="chips">${cps([['sans','黑體'],['serif','宋體'],['mono','等寬']],S.g.font,"S.g.font='@'")}</div>
+ <div class="lbl">動態特效（可複選）</div><div class="chips">${[['shine','流光掃過'],['scan','掃描線'],['float','懸浮'],['ring','頭像脈衝'],['aurora','極光流動'],['glitter','閃爍星塵'],['spot','滑鼠聚光（僅預覽）']].map(([k,l])=>`<button class="btn ${S.g.fx[k]?'on':''}" onclick="S.g.fx['${k}']=S.g.fx['${k}']?0:1;panel();pv()">${l}</button>`).join('')}</div>
+ <div class="two">${sl('卡片寬度','w',300,560,10,'px')}${sl('圓角','r',0,36,1,'px')}${sl('邊框粗細','bw',0,6,.5,'px')}${sl('外發光','glow',0,60,1,'px')}${sl('背景不透明','op',20,100,1,'%')}${sl('毛玻璃','blur',0,24,1,'px')}${sl('進度條高度','bh',6,26,1,'px')}${sl('進度條圓角','br',0,13,1,'px')}</div>
+ <div class="two">${cp('背景色','bg')}${cp('背景漸層','bg2')}${cp('文字色','tx')}${cp('次要文字','sub')}${cp('邊框色','bd')}${cp('進度條軌道','tr')}</div>`;
+if(P===6){const a=S.acc[S.sel];
+ h=`<h2>⑦ 飾品圖庫</h2><p class="hint">點擊加入，可疊加多個；每個都能調位置、大小、角度、顏色與動畫。</p>
+ <div class="icons" style="margin-bottom:14px">${Object.keys(ACC).map(k=>`<button class="ic" title="${ACCN[k]}" onclick="addAcc('${k}')"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">${ACC[k]}</svg></button>`).join('')}<label class="ic">自訂<input type="file" accept="image/*" hidden onchange="accUp(this)"></label></div>
+ ${S.acc.length?`<div class="chips">${S.acc.map((x,i)=>`<button class="btn ${i===S.sel?'on':''}" onclick="S.sel=${i};panel()">#${i+1} ${x.img?'自訂':ACCN[x.k]}</button>`).join('')}</div>`:'<p class="hint">尚未加入任何飾品。</p>'}
+ ${a?`<div class="lbl">快速定位</div><div class="chips">${[['頭頂',0,-8],['左上角',-185,-6],['右上角',185,-6],['頭像旁',-140,40]].map(([l,x,y])=>`<button class="btn" onclick="S.acc[S.sel].x=${x};S.acc[S.sel].y=${y};panel();pv()">${l}</button>`).join('')}</div><div class="two">${sa('水平位置','x',-260,260,1,'px')}${sa('垂直位置','y',-60,340,1,'px')}${sa('大小','s',.3,4,.1,'x')}${sa('旋轉','r',-180,180,1,'°')}</div><label>顏色<input type="color" value="${a.c}" oninput="S.acc[S.sel].c=this.value;pv()"></label><div class="lbl">動畫</div><div class="chips">${[['none','靜止'],['float','漂浮'],['spin','旋轉'],['pulse','脈動'],['twinkle','閃爍'],['swing','擺動']].map(([k,l])=>`<button class="btn ${a.an===k?'on':''}" onclick="S.acc[S.sel].an='${k}';panel();pv()">${l}</button>`).join('')}</div><button class="btn" onclick="S.acc.splice(S.sel,1);S.sel=0;panel();pv()">刪除此飾品</button>`:''}`;}
+if(P===3)h=`<h2>⑥ 動態與互動</h2><p class="hint">為每個狀態設定「條件、效果、顏色」：數值一達標，卡片就自動切換。條件由上而下判斷，符合的第一個生效；右側可按「▶ 演示」看數值隨機變動。</p>
+<div class="lbl">進度條樣式</div><div class="chips">${cps([['smooth','平滑漸層'],['seg','像素分格'],['wave','流動條紋'],['glow','霓虹發光'],['gloss','立體高光'],['tick','刻度'],['thin','細線']],S.bar,"S.bar='@'")}</div>
+<div class="lbl">進度條配色（全域；也可在「欄位」步驟為每條單獨選色）</div><div class="chips">${BP.map(([n,a,b])=>`<button class="btn" onclick="S.g.b1='${a}';S.g.b2='${b}';panel();pv()"><i style="display:inline-block;width:34px;height:10px;border-radius:9px;background:linear-gradient(90deg,${a},${b});vertical-align:middle;margin-right:6px"></i>${n}</button>`).join('')}<button class="btn" onclick="S.g.b1='';S.g.b2='';panel();pv()">跟隨主題</button></div>
+<div class="two"><label>起始色<input type="color" value="${S.g.b1||th().ac}" oninput="S.g.b1=this.value;pv()"></label><label>結束色（與起始色相同即為單色）<input type="color" value="${S.g.b2||th().ac2}" oninput="S.g.b2=this.value;pv()"></label></div>
+<div class="two">${cp('軌道底色','tr')}${cp('邊框色','bd')}</div>
+<div class="sw"><input type="checkbox" id="lw" ${S.g.low!==0?'checked':''} onchange="S.g.low=this.checked?1:0;pv()"><label for="lw" style="margin:0;color:var(--ink)">數值偏低時改用警示色</label></div>
+<div class="two"><label>警示起始色<input type="color" value="${S.g.lw1}" oninput="S.g.lw1=this.value;pv()"></label><label>警示結束色<input type="color" value="${S.g.lw2}" oninput="S.g.lw2=this.value;pv()"></label></div>
+<label>警示門檻：<b>${S.thr}%</b><input type="range" min="5" max="60" value="${S.thr}" style="width:100%" oninput="S.thr=+this.value;this.previousElementSibling.textContent=this.value+'%';pv()"></label>
+<div class="lbl">狀態規則</div>${S.states.map(stateRow).join('')}<button class="btn" onclick="addState()">＋ 新增狀態</button>
+<div class="lbl" style="margin-top:18px">點擊卡片時（僅預覽）</div><div class="chips">${cps([['burst','彩蛋表情'],['ripple','水波漣漪'],['cycle','輪播狀態'],['none','無']],S.click,"S.click='@'")}</div>
+<div class="sw"><input type="checkbox" id="i1" ${S.tilt?'checked':''} onchange="S.tilt=this.checked?1:0;tiltReset()"><label for="i1" style="margin:0;color:var(--ink)">滑鼠 3D 傾斜</label></div>
+<div class="sw"><input type="checkbox" id="i2" ${S.bump?'checked':''} onchange="S.bump=this.checked?1:0"><label for="i2" style="margin:0;color:var(--ink)">點擊進度條 +10%（試玩規則）</label></div>
+<label>彩蛋表情（可自行輸入）<input type="text" value="${S.burst}" oninput="S.burst=this.value||'✨'"></label>`;
+$('#panel').innerHTML=h+nav();
+}
+function ctrl(f,i){
+ if(f.t==='bar')return`<input type="range" min="0" max="${f.max}" value="${f.v}" oninput="F(${i},'v',+this.value);this.nextElementSibling.textContent=this.value+'/${f.max}'"><em>${f.v}/${f.max}</em><input type="color" title="起始色" value="${f.c1||S.g.b1||th().ac}" oninput="F(${i},'c1',this.value)" style="width:26px;height:26px;padding:0;margin:0"><input type="color" title="結束色" value="${f.c2||S.g.b2||th().ac2}" oninput="F(${i},'c2',this.value)" style="width:26px;height:26px;padding:0;margin:0">`;
+ if(f.t==='heart')return`<input type="range" min="0" max="${f.max}" value="${f.v}" oninput="F(${i},'v',+this.value);this.nextElementSibling.textContent=this.value+'/${f.max}'"><em>${f.v}/${f.max}</em>`;
+ if(f.t==='num')return`<input type="number" value="${f.v}" oninput="F(${i},'v',+this.value)">`;
+ return`<input type="text" value="${esc(f.txt)}" oninput="F(${i},'txt',this.value)">`;
+}
+const F=(i,k,v)=>{S.f[i][k]=v;pv()};
+const rm=i=>{S.f.splice(i,1);panel();pv()};
+function add(t){const d={bar:bar('新數值',60),heart:heart('好感',3),badge:badge('標籤','待命'),num:num('數值',10),text:text('備註','……'),sec:sec('新分區')}[t];S.f.push({...d,id:++uid});panel();pv()}
+function upload(el){const r=new FileReader();r.onload=e=>{S.av={t:'img',src:e.target.result};panel();pxRun()};if(el.files[0])r.readAsDataURL(el.files[0])}
+
+/* ---------- export ---------- */
+function exportText(){
+ if(S.ex==='html')return`<!-- 角色狀態欄：${S.name} -->\n<style>\n${CARD_CSS}\n</style>\n${cardHTML()}`;
+ if(S.ex==='json')return JSON.stringify({...S,av:S.av.t==='img'?{t:'img',src:'(已省略)'}:S.av,step:undefined},null,2);
+ const lines=S.f.map(f=>f.t==='sec'?`\n【${f.n}】`:f.t==='bar'?`- ${f.n}：[數值]/${f.max}`:f.t==='heart'?`- ${f.n}：[0-${f.max}] 顆愛心`:f.t==='num'?`- ${f.n}：[數字]`:`- ${f.n}：[簡短描述]`).join('\n');
+ return`【狀態欄規則】\n每次回覆的結尾，請依劇情發展更新 {{char}}（${S.name}，${S.title}）的狀態欄，並嚴格維持以下格式：\n\n━━━━━━━━━━━━━━\n${S.name}｜${S.title}\n當前狀態：[${Object.values(S.lab).join(' / ')}]${lines}\n━━━━━━━━━━━━━━\n\n規則：\n1. 數值依互動合理增減，單次變化不超過 15%。\n2. ${S.f.find(f=>f.t==='bar')?.n||'第一項數值'} 低於 ${S.thr}% 時，當前狀態必須切換為「${S.lab.danger}」。\n3. 狀態欄只放在回覆最後，不要在劇情中重複。`;
+}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1600)}
+function copyOut(){const a=$('#out');const done=()=>toast('已複製到剪貼簿 ✓');
+ try{navigator.clipboard.writeText(a.value).then(done,()=>{a.select();document.execCommand('copy');done()})}catch(e){a.select();try{document.execCommand('copy');done()}catch(_){toast('請手動選取複製')}}}
+
+/* ---------- click burst ---------- */
+$('#stage').addEventListener('click',e=>{if(S.click!=='burst')return;
+ const r=e.currentTarget.getBoundingClientRect(),ic=Array.from(S.burst||'✨');
+ for(let i=0;i<7;i++){const p=document.createElement('span');p.className='fx';p.textContent=ic[Math.random()*ic.length|0];
+  p.style.left=e.clientX-r.left+'px';p.style.top=e.clientY-r.top+'px';
+  p.style.setProperty('--dx',(Math.random()-.5)*140+'px');p.style.setProperty('--dy',(Math.random()-.5)*140-30+'px');
+  e.currentTarget.appendChild(p);setTimeout(()=>p.remove(),900)}});
+
+const BP=[['櫻粉','#ff9ec4','#ff5f9e'],['海藍','#4fd1c5','#4a7bff'],['薄荷','#b8f2c9','#4cc38a'],['琥珀','#ffd166','#ff8a3d'],['紫霧','#c4b5fd','#8b5cf6'],['火焰','#ffb347','#e5484d'],['極光','#7cf0a0','#7aa2ff'],['黑金','#f6e2a0','#b8892b'],['霓虹','#22e5ff','#ff3d8b'],['純灰','#9aa4b2','#9aa4b2']];
+const EFS=[['none','無'],['pulse','脈衝光'],['glow','柔光暈'],['shake','震動'],['breathe','呼吸'],['flicker','故障閃爍'],['rainbow','彩虹邊框'],['frost','冰霜'],['beat','心跳頭像']];
+function autoRules(){const bs=S.f.filter(f=>f.t==='bar'),h=S.f.find(f=>f.t==='heart'),a=S.states;a[1].fid=bs[0]?bs[0].id:'';a[2].fid=h?h.id:(bs[1]?bs[1].id:'');a[2].v=h?5:90;a[3].fid=bs[1]?bs[1].id:''}
+function fval(f){return f.t==='bar'?pct(f):f.v}
+function eff(){if(S.cur>=0&&S.states[S.cur])return S.cur;for(let i=1;i<S.states.length;i++){const s=S.states[i],f=S.f.find(x=>x.id==s.fid);if(!f||f.v===undefined)continue;const v=fval(f);if(s.op==='<='?v<=s.v:s.op==='>='?v>=s.v:s.op==='<'?v<s.v:s.op==='>'?v>s.v:v==s.v)return i}return 0}
+function pv(){$('#pv').innerHTML=cardHTML();const c=eff();$('#sbtn').innerHTML=`<button class="btn ${S.cur<0?'on':''}" onclick="setState(-1)">自動</button>`+S.states.map((s,i)=>`<button class="btn ${S.cur===i?'on':''}" onclick="setState(${i})">${esc(s.n)}${S.cur<0&&c===i?' ●':''}</button>`).join('')+`<button class="btn ${S.play?'on':''}" onclick="play(!S.play)">${S.play?'■ 停止':'▶ 演示'}</button>`}
+function setState(i){S.cur=i;pv();if(ORD[S.step]===3)panel()}
+let tm;function play(on){S.play=on;clearInterval(tm);if(on)tm=setInterval(()=>{const fs=S.f.filter(f=>f.t==='bar'||f.t==='heart');if(!fs.length)return;const f=fs[Math.random()*fs.length|0],d=f.t==='bar'?((Math.random()*44-22)|0):(Math.random()<.5?-1:1);f.v=Math.max(0,Math.min(f.max,f.v+d));pv()},900);pv()}
+const ST=(i,k,v)=>{S.states[i][k]=v;pv()};
+function addState(){S.states.push({n:'新狀態',lb:'✨ 新狀態',ef:'glow',c:'#8e7dff',fid:'',op:'>=',v:50});panel();pv()}
+function stateRow(s,i){const fo='<option value="">手動切換（無條件）</option>'+S.f.filter(f=>f.v!==undefined).map(f=>`<option value="${f.id}" ${s.fid==f.id?'selected':''}>${esc(f.n)}${f.t==='bar'?'（%）':''}</option>`).join('');
+ return`<div class="frow" style="display:block"><div class="two"><label>按鈕名稱<input type="text" value="${esc(s.n)}" oninput="ST(${i},'n',this.value)"></label><label>徽章文字<input type="text" value="${esc(s.lb)}" oninput="ST(${i},'lb',this.value)"></label></div>${i?`<div style="display:grid;grid-template-columns:1.6fr .7fr .8fr;gap:8px;margin-bottom:10px"><select onchange="ST(${i},'fid',this.value)">${fo}</select><select onchange="ST(${i},'op',this.value)">${['<=','>=','<','>','=='].map(o=>`<option ${s.op===o?'selected':''}>${o}</option>`).join('')}</select><input type="number" value="${s.v}" oninput="ST(${i},'v',+this.value)"></div>`:''}<div class="two"><label>效果<select onchange="ST(${i},'ef',this.value)">${EFS.map(([k,l])=>`<option value="${k}" ${s.ef===k?'selected':''}>${l}</option>`).join('')}</select></label><label>代表色<input type="color" value="${s.c||th().ac}" oninput="ST(${i},'c',this.value)"></label></div>${i?`<button class="btn" onclick="S.states.splice(${i},1);S.cur=-1;panel();pv()">刪除此狀態</button>`:''}</div>`}
+function exportText(){
+ if(S.ex==='html')return`<!-- 角色狀態欄：${S.name} -->\n<style>\n${CARD_CSS}\n</style>\n${cardHTML()}`;
+ if(S.ex==='json')return JSON.stringify({...S,px:{...S.px,src:''},av:S.av.t==='img'?{t:'img',src:'(已省略)'}:S.av,step:undefined},null,2);
+ const ln=S.f.map(f=>f.t==='sec'?`\n【${f.n}】`:f.t==='bar'?`- ${f.n}：[數值]/${f.max}`:f.t==='heart'?`- ${f.n}：[0-${f.max}] 顆愛心`:f.t==='num'?`- ${f.n}：[數字]`:`- ${f.n}：[簡短描述]`).join('\n');
+ const rl=S.states.slice(1).map(s=>{const f=S.f.find(x=>x.id==s.fid);return f?`- ${f.n} ${s.op} ${s.v}${f.t==='bar'?'%':''} 時，當前狀態改為「${s.lb}」`:''}).filter(Boolean).join('\n');
+ return`【狀態欄規則】\n每次回覆結尾，請依劇情更新 {{char}}（${S.name}，${S.title}）的狀態欄，並嚴格維持以下格式：\n\n━━━━━━━━━━━━━━\n${S.name}｜${S.title}\n當前狀態：[${S.states.map(s=>s.lb).join(' / ')}]${ln}\n━━━━━━━━━━━━━━\n\n規則：\n1. 數值依互動合理增減，單次變化不超過 15%。\n2. 狀態切換條件：\n${rl||'- 依劇情自行判斷'}\n3. 狀態欄只放在回覆最後，不要在劇情中重複。`}
+$('#stage').addEventListener('click',e=>{const row=e.target.closest('.row[data-f]');if(S.bump&&row){const f=S.f.find(x=>x.id==row.dataset.f);if(f){f.v=f.v+f.max/10>f.max?0:Math.round(f.v+f.max/10);pv();if(ORD[S.step]===4)panel();return}}
+ if(S.click==='cycle'){S.cur=S.cur<0?0:(S.cur+1)%S.states.length;pv()}
+ if(S.click==='ripple'){const r=e.currentTarget.getBoundingClientRect(),p=document.createElement('span');p.className='rp';p.style.left=e.clientX-r.left+'px';p.style.top=e.clientY-r.top+'px';e.currentTarget.appendChild(p);setTimeout(()=>p.remove(),700)}});
+$('#stage').addEventListener('mousemove',e=>{const h=$('#pv .hud');if(!h)return;const r=h.getBoundingClientRect();h.style.setProperty('--mx',e.clientX-r.left+'px');h.style.setProperty('--my',e.clientY-r.top+'px')});
+function tiltReset(){const w=$('#pv .hw');if(w)w.style.transform=''}
+$('#stage').addEventListener('mousemove',e=>{if(!S.tilt)return;const w=$('#pv .hw');if(!w)return;const r=w.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;w.style.transform=`perspective(700px) rotateY(${x*14}deg) rotateX(${-y*14}deg)`});
+$('#stage').addEventListener('mouseleave',tiltReset);
+panel();pv();
+</script>
+</body>
+</html>
